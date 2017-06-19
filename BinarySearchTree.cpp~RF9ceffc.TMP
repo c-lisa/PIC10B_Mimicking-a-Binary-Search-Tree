@@ -1,0 +1,272 @@
+/** @file BinarySearchTree.h
+@brief Contains the class definitions for BinarySearchTree class.
+@author Lisa Chiang
+@date March 14, 2017
+
+BinarySearchTree allows the user to store ints as nodes that are accessed by iterating through the BinarySearchTree. The BinarySearchTree
+can be manipulated by the user.
+*/
+
+#include "BinarySearchTree.h"
+
+//Constructor 
+/**@brief BinarySearchTree Constructor
+
+Constructor
+
+@param No parameters.
+@return No returns.
+*/
+BinarySearchTree::BinarySearchTree()
+{
+	root = NULL; 
+}
+
+//Destructor
+/**@brief BinarySearchTree Destructor
+
+Destructor that deletes all memory created internally by the BinarySearchTree class.
+
+@param No parameters.
+@return No returns.
+*/
+BinarySearchTree::~BinarySearchTree()
+{
+	TreeIterator first = begin(); 
+	for (int i = 1; i <= 5; i++)
+	{
+		if (first.position->data != root->data)
+		{
+			delete first.position;
+			first++;
+		}
+	}
+	delete root; 
+	//TreeIterator A = this->begin();
+	//while (*A != root->data)
+	//{
+	//	++A; //now set to root
+	//}
+	//--A; 
+	////delete left side of tree
+	//while (A != begin())
+	//{
+	//	TreeNode* delete_this = A.position; 
+	//	delete delete_this; 
+	//	--A; 
+	//}
+	//std::cout << "Help"; 
+	////now A is the first node, delete it 
+	//TreeNode* delete_this = begin().position;
+	//delete delete_this; 
+	//
+	//TreeIterator B = this->begin();
+	////delete right side of tree
+	//while (*B != root->data)
+	//{
+	//	++B; //now set to root
+	//}
+	//++B;
+	//while (B != end())
+	//{
+	//	TreeNode* delete_this = B.position;
+	//	delete delete_this;
+	//	--B;
+	//} 
+	////B as last node already deleted, B pointing at null 
+
+	//delete root; 	
+}
+
+//Iterator Functions
+/**@brief Getting the beginning
+
+Returns an TreeIterator pointing to the TreeNode with the smallest value.
+
+@param No parameters.
+@return Returns an TreeIterator pointing to the TreeNode of smallest value.
+*/
+TreeIterator BinarySearchTree::begin()
+{
+	TreeIterator A (root, this); 
+	--A; 
+	return A; 
+}
+/**@brief Getting the end
+
+Returns an TreeIterator pointing one after the TreeNode with the largest value.
+
+@param No parameters.
+@return Returns an TreeIterator pointing to one after the TreeNode with the largest value.
+*/
+TreeIterator BinarySearchTree::end()
+{
+	TreeIterator A(root, this);
+	while (*A != -1)
+	{
+		++A;
+	}
+	return A; 
+}
+
+//Non-Iterator Functions 
+/**@brief Inserting
+
+Calls the insert_node function of the TreeNode class to insert a new TreeNode
+unless there is nothing in the tree. In this case, the node is set to the root. 
+
+@param value is the integer of the TreeNode that will be created.
+@return Returns nothing.
+*/
+void BinarySearchTree::insert(int value)
+{
+	TreeNode* new_node = new TreeNode(value); 
+	if (root == nullptr)
+	{
+		new_node->left = nullptr; new_node->right = nullptr; new_node->parent = nullptr;
+		root = new_node;
+	}
+	else
+	{
+		root->insert_node(new_node);
+	}
+}
+/**@brief Erasing
+
+Erases the TreeNode with the user-inputted int value (if it exists). 
+If the TreeNode doesn't have children, it is deleted. If it does, the Binary 
+Search Tree is restructured to accomodate for this. 
+
+@param value is the integer of the TreeNode that will be erased.
+@return Returns nothing.
+*/
+void BinarySearchTree::erase(int value)
+{
+	if ((count(value)) == 0)
+	{
+		return; 
+	}
+	else
+	{
+		TreeIterator A = this->begin(); 
+		while (*A != value)
+		{
+			++A; 
+		} //erase node at this position 
+		TreeNode* to_be_removed = A.position; 
+		//if no children
+		if (to_be_removed->left == nullptr)
+		{
+			if (to_be_removed->right = nullptr)
+			{
+				delete to_be_removed; 
+				return; 
+			}
+		}
+		//if one left child 
+		if (to_be_removed->left != nullptr) //if left exists
+		{
+			if (to_be_removed->right == nullptr) //but no right child
+			{
+				//find left child
+				TreeNode* removed_left_child = to_be_removed->left; 
+				//set data of left child equal to og removal
+				to_be_removed->data = removed_left_child->data; 
+				delete removed_left_child; //delete child
+				return; 
+			}
+		}
+		//if one right child
+		if (to_be_removed->right != nullptr) //if right exists
+		{
+			if (to_be_removed->left == nullptr) //but no left child
+			{
+				//find right child 
+				TreeNode* removed_right_child = to_be_removed->right;
+				//set data of right child equal to og removal
+				to_be_removed->data = removed_right_child->data;
+				delete removed_right_child; //delete child
+				return; 
+			}
+		}
+		
+		//if two children 
+		TreeNode* next_largest_in_subtree; 
+		next_largest_in_subtree = to_be_removed->next_smallest(); 
+		to_be_removed->data = next_largest_in_subtree->data; 
+		
+		//if next largest has no kids
+		if (next_largest_in_subtree->left == nullptr && next_largest_in_subtree->right == nullptr)
+		{
+			delete next_largest_in_subtree; 
+		}
+		//if next largest has children 
+		if (next_largest_in_subtree->right != nullptr)
+		{
+			TreeNode* child_of_next_largest; 
+			child_of_next_largest = next_largest_in_subtree->right; 
+			child_of_next_largest->parent = next_largest_in_subtree->parent; 
+			next_largest_in_subtree->parent->right = child_of_next_largest; 
+			delete next_largest_in_subtree; 
+			return; 
+		}			
+	}
+}
+/**@brief Counting the Leaves
+
+Finds if the user-inputted int value exists in the BinarySearchTree by calling the
+TreeNode find function. 
+
+@param value is the integer of the TreeNode that is being located.
+@return Returns 0 if not found and 1 if found. 
+*/
+int BinarySearchTree::count(int value) const
+{
+	if (root == NULL)
+	{
+		return 0; 
+	}
+	else if (root->find(value))
+	{
+		return 1; 
+	}
+	else
+	{
+		return 0; 
+	}
+}
+
+/**@brief Smallest TreeNode Value
+
+Returns the int of the smallest TreeNode value by going to the beginning of 
+the Binary Search Tree.
+
+@param No parameters.
+@return Returns the int of smallest value.
+*/
+int BinarySearchTree::smallest() 
+{
+	TreeIterator A(root, this);
+	while (*A != -1)
+	{
+		--A;
+	}
+	return *A;
+}
+/**@brief Largest TreeNode Value
+
+Returns the int of the largest TreeNode value by going to the beginning of
+the Binary Search Tree.
+
+@param No parameters.
+@return Returns the int of largest value.
+*/
+int BinarySearchTree::largest()
+{
+	TreeIterator A(root, this);
+	while (*A != -1)
+	{
+		--A;
+	}
+	return *A;
+}
